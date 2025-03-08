@@ -1,24 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("sync-video-backend.railway.internal"); // Replace with your backend URL
+const socket = io("https://your-backend.up.railway.app"); // Replace with your Railway backend URL
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
   const [videoUrl, setVideoUrl] = useState(null);
   const [roomId, setRoomId] = useState(null);
-  const [player, setPlayer] = useState(null);
+  const playerRef = useRef(null);
 
+  // Join room if accessed via shared link
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomIdFromURL = urlParams.get("room");
+    if (roomIdFromURL) {
+      setRoomId(roomIdFromURL);
+      socket.emit("join-room", roomIdFromURL);
+    }
+  }, []);
+
+  // Sync video play/pause/seek
   useEffect(() => {
     socket.on("sync", ({ action, time }) => {
-      if (player) {
-        if (action === "play") player.play();
-        else if (action === "pause") player.pause();
-        else if (action === "seek") player.currentTime = time;
+      if (playerRef.current) {
+        if (action === "play") playerRef.current.play();
+        else if (action === "pause") playerRef.current.pause();
+        else if (action === "seek") playerRef.current.currentTime = time;
       }
     });
-  }, [player]);
+  }, []);
 
+  // Generate room link
   const handleGenerateLink = () => {
     const id = Math.random().toString(36).substring(7);
     setRoomId(id);
@@ -26,9 +38,10 @@ export default function SyncStream() {
     socket.emit("create-room", id);
   };
 
+  // Handle video events
   const handleVideoEvent = (event) => {
-    if (!roomId) return;
-    const time = player.currentTime;
+    if (!roomId || !playerRef.current) return;
+    const time = playerRef.current.currentTime;
     socket.emit("sync", { roomId, action: event, time });
   };
 
@@ -47,11 +60,11 @@ export default function SyncStream() {
             </>
         ) : (
             <>
-              <p>Share this link: {window.location.href}?room={roomId}</p>
+              <p>Share this link: {window.location.origin}?room={roomId}</p>
               <video
                   src={videoUrl}
                   controls
-                  ref={(ref) => setPlayer(ref)}
+                  ref={playerRef}
                   onPlay={() => handleVideoEvent("play")}
                   onPause={() => handleVideoEvent("pause")}
                   onSeeked={() => handleVideoEvent("seek")}
@@ -62,6 +75,7 @@ export default function SyncStream() {
   );
 }
 
+// Convert Google Drive Link
 function convertGDriveLink(link) {
   const match = link.match(/id=([a-zA-Z0-9_-]+)/);
   return match ? `https://drive.google.com/uc?id=${match[1]}` : link;
