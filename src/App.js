@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
+// ✅ Use the correct backend URL for WebSocket connection
 const socket = io("https://sync-video-backend-production.up.railway.app", {
-  transports: ["websocket", "polling"], // Force WebSocket + Polling
-  upgrade: false, // Disable WebSocket upgrade errors
+  transports: ["websocket", "polling"], // WebSocket first, fallback to polling
   path: "/socket.io/",
+  upgrade: false, // Prevents WebSocket upgrade failures
 });
-
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
@@ -14,7 +14,7 @@ export default function SyncStream() {
   const [roomId, setRoomId] = useState(null);
   const playerRef = useRef(null);
 
-  // Join room if accessed via shared link
+  // ✅ Check if the user joins via a shared link and auto-connect to room
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomIdFromURL = urlParams.get("room");
@@ -24,7 +24,7 @@ export default function SyncStream() {
     }
   }, []);
 
-  // Sync video play/pause/seek
+  // ✅ Handle WebSocket sync events (Play, Pause, Seek)
   useEffect(() => {
     socket.on("sync", ({ action, time }) => {
       if (playerRef.current) {
@@ -33,9 +33,13 @@ export default function SyncStream() {
         else if (action === "seek") playerRef.current.currentTime = time;
       }
     });
+
+    return () => {
+      socket.off("sync");
+    };
   }, []);
 
-  // Generate room link
+  // ✅ Generate a new room link
   const handleGenerateLink = () => {
     const id = Math.random().toString(36).substring(7);
     setRoomId(id);
@@ -43,7 +47,7 @@ export default function SyncStream() {
     socket.emit("create-room", id);
   };
 
-  // Handle video events
+  // ✅ Handle video play, pause, and seek sync
   const handleVideoEvent = (event) => {
     if (!roomId || !playerRef.current) return;
     const time = playerRef.current.currentTime;
@@ -80,8 +84,8 @@ export default function SyncStream() {
   );
 }
 
-// Convert Google Drive Link
+// ✅ Convert Google Drive Link to Direct Streaming URL
 function convertGDriveLink(link) {
-  const match = link.match(/id=([a-zA-Z0-9_-]+)/);
-  return match ? `https://drive.google.com/uc?id=${match[1]}` : link;
+  const match = link.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/);
+  return match ? `https://drive.google.com/uc?id=${match[1]}` : "";
 }
