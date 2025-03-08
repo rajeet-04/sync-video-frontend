@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("wss://tramway.proxy.rlwy.net:32042", {
-  transports: ["websocket", "polling"], // Force WebSocket + Polling fallback
+const socket = io("https://tramway.proxy.rlwy.net:32042", {
+  transports: ["polling"], // Use only HTTP polling, no WebSocket
   path: "/socket.io/",
 });
+
 
 
 export default function SyncStream() {
