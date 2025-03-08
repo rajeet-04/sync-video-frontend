@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("https://your-backend.up.railway.app"); // Replace with your Railway backend URL
+const socket = io("sync-video-backend-production.up.railway.app"); // Replace with your Railway backend URL
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
