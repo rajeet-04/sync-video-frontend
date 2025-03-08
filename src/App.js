@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("caboose.proxy.rlwy.net:45864"); // Replace with your Railway backend URL
+const socket = io("wss://tramway.proxy.rlwy.net:32042", {
+  transports: ["websocket"],
+});
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
