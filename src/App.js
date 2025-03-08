@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("wss://sync-video-backend-production.up.railway.app", {
-  transports: ["websocket", "polling"],
+const socket = io("https://sync-video-backend-production.up.railway.app", {
+  transports: ["websocket", "polling"], // Force WebSocket + Polling
+  upgrade: false, // Disable WebSocket upgrade errors
   path: "/socket.io/",
 });
+
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
