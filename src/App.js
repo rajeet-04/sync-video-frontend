@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("https://tramway.proxy.rlwy.net:32042", {
-  transports: ["polling"], // Use only HTTP polling, no WebSocket
+const socket = io("wss://sync-video-backend-production.up.railway.app", {
+  transports: ["websocket", "polling"],
   path: "/socket.io/",
 });
-
-
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
