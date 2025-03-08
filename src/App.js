@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 const socket = io("wss://tramway.proxy.rlwy.net:32042", {
-  transports: ["websocket"],
+  transports: ["websocket", "polling"], // Force WebSocket + Polling fallback
+  path: "/socket.io/",
 });
+
 
 export default function SyncStream() {
   const [gdriveLink, setGdriveLink] = useState("");
